@@ -16,7 +16,6 @@ public class CrudOperation1 {
     static Connection con;
     static PreparedStatement ps;
 
-    
     public static void insertRecord() throws Exception {
         try {
             Class.forName(driver);
@@ -37,7 +36,8 @@ public class CrudOperation1 {
             ps.executeUpdate();
             System.out.println("Record Inserted Successfully");
         } finally {
-            con.close();
+            if (ps != null) ps.close();
+            if (con != null) con.close();
         }
     }
 
@@ -46,38 +46,37 @@ public class CrudOperation1 {
             Class.forName(driver);
             con = DriverManager.getConnection(url, username, password);
 
-            String q = "update student set name=IFNULL(?, name), age=IFNULL(?, a	ge) where std_id=?";
+            String q = "update student set name=IFNULL(?, name), age=IFNULL(?, age) where std_id=?";
             ps = con.prepareStatement(q);
 
             System.out.println("Do you want to update name? (yes/no): ");
-            String op=br.readLine();
-            
-            if(op.equalsIgnoreCase("yes")) {
-            System.out.print("Enter new name: ");
-            ps.setString(1, br.readLine());
+            String op = br.readLine();
+
+            if (op.equalsIgnoreCase("yes")) {
+                System.out.print("Enter new name: ");
+                ps.setString(1, br.readLine());
+            } else {
+                ps.setNull(1, Types.VARCHAR);
             }
-            else {
-            	ps.setNull(1, java.sql.Types.VARCHAR);
-            }
+
             System.out.println("Do you want to update age? (yes/no): ");
-            String choose=br.readLine();
-            
-            if(choose.equalsIgnoreCase("yes")) {
-            	System.out.println("Enter new age: ");
-            	ps.setInt(2, Integer.parseInt(br.readLine()));
+            String choose = br.readLine();
+
+            if (choose.equalsIgnoreCase("yes")) {
+                System.out.print("Enter new age: ");
+                ps.setInt(2, Integer.parseInt(br.readLine()));
+            } else {
+                ps.setNull(2, Types.INTEGER);
             }
-            else {
-            	ps.setNull(2, java.sql.Types.INTEGER);
-			}
-            
+
             System.out.print("Enter student id: ");
             ps.setInt(3, Integer.parseInt(br.readLine()));
 
             ps.executeUpdate();
             System.out.println("Record Updated Successfully");
         } finally {
-            if(con !=null)
-            	con.close();
+            if (ps != null) ps.close();
+            if (con != null) con.close();
         }
     }
 
@@ -93,18 +92,15 @@ public class CrudOperation1 {
                 ps = con.prepareStatement("delete from student where std_id=?");
                 System.out.print("Enter id: ");
                 ps.setString(1, br.readLine());
-            }
-            else if (choice.equalsIgnoreCase("name")) {
+            } else if (choice.equalsIgnoreCase("name")) {
                 ps = con.prepareStatement("delete from student where name=?");
                 System.out.print("Enter name: ");
                 ps.setString(1, br.readLine());
-            }
-            else if (choice.equalsIgnoreCase("age")) {
+            } else if (choice.equalsIgnoreCase("age")) {
                 ps = con.prepareStatement("delete from student where age=?");
                 System.out.print("Enter age: ");
                 ps.setString(1, br.readLine());
-            }
-            else {
+            } else {
                 System.out.println("Invalid option");
                 return;
             }
@@ -112,7 +108,8 @@ public class CrudOperation1 {
             ps.executeUpdate();
             System.out.println("Record Deleted Successfully");
         } finally {
-            con.close();
+            if (ps != null) ps.close();
+            if (con != null) con.close();
         }
     }
 
@@ -128,49 +125,60 @@ public class CrudOperation1 {
             System.out.println("----------------------");
 
             while (rs.next()) {
-           System.out.println(rs.getString("std_id") + "\t" + rs.getString("name") + "\t" + rs.getString("age"));
+                System.out.println(
+                        rs.getString("std_id") + "\t" +
+                        rs.getString("name") + "\t" +
+                        rs.getString("age"));
             }
+
+            rs.close();
         } finally {
-            con.close();
+            if (ps != null) ps.close();
+            if (con != null) con.close();
         }
     }
 
-   
     public static void autoRun() throws Exception {
-            System.out.println("Choose option: insert / update / delete / fetch / exit");
-            String op = br.readLine();
 
-            
-            switch (op.toLowerCase()) {
-                case "insert": 
-                	CrudOperation1.insertRecord(); 
-                	break;
-                case "update": 
-                	CrudOperation1.updateRecord();
-                    break;
-                case "delete": 
-                	CrudOperation1.deleteRecord(); 
-                	break;
-                case "fetch":  
-                	CrudOperation1.fetchRecords(); 
-                	break;
-                case "exit":   
-                	System.out.println("Thanks"); 
-                	return;
-                default: 
-                	System.out.println(" Invalid option");
-            }
-           System.out.println("Would you like to continue with this operation? (Yes / No):");
-           String st=br.readLine(); 
-           if(st.equalsIgnoreCase("yes") | st.equalsIgnoreCase("y")) {
-        	   CrudOperation1.autoRun();
-           }
-           else if (st.equalsIgnoreCase("no") | st.equalsIgnoreCase("n")) {
-        	   System.out.println("Thank....");
-		}
+        System.out.println("Choose option: insert / update / delete / fetch / exit");
+        String op = br.readLine();
+
+        switch (op.toLowerCase()) {
+            case "insert":
+                insertRecord();
+                break;
+
+            case "update":
+                updateRecord();
+                break;
+
+            case "delete":
+                deleteRecord();
+                break;
+
+            case "fetch":
+                fetchRecords();
+                break;
+
+            case "exit":
+                System.out.println("Thanks");
+                return;
+
+            default:
+                System.out.println("Invalid option");
         }
-    
+
+        System.out.println("Would you like to continue with this operation? (Yes / No):");
+        String st = br.readLine();
+
+        if (st.equalsIgnoreCase("yes") || st.equalsIgnoreCase("y")) {
+            autoRun();
+        } else if (st.equalsIgnoreCase("no") || st.equalsIgnoreCase("n")) {
+            System.out.println("Thank....");
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-    	CrudOperation1.autoRun();
+        autoRun();
     }
 }
